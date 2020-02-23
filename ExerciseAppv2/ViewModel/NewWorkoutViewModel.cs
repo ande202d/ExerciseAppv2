@@ -8,9 +8,9 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using ExerciseAppv2.Annotations;
 using ExerciseAppv2.Common;
 using ExerciseAppv2.Model;
+using ExerciseAppv2.Properties;
 using Newtonsoft.Json;
 
 namespace ExerciseAppv2.ViewModel
