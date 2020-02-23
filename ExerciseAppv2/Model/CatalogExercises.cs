@@ -14,8 +14,11 @@ namespace ExerciseAppv2.Model
         private string _fileName = "dataExercises.json";
         private CatalogExercises()
         {
-            if (!File.Exists(_fileName)) File.Create(_fileName);
-            _list = ReadAll().Result;
+            if (!File.Exists(_fileName)) File.Create(_fileName).Dispose();
+
+            var v = ReadAll();
+            v.Wait();
+            _list = v.Result;
         }
 
         #region Singleton
@@ -26,8 +29,8 @@ namespace ExerciseAppv2.Model
         {
             get
             {
-                if (_instance == null) return new CatalogExercises();
-                return Instance;
+                if (_instance == null) _instance = new CatalogExercises();
+                return _instance;
             }
         }
 
@@ -37,7 +40,8 @@ namespace ExerciseAppv2.Model
 
         public async Task Create(Exercise obj)
         {
-            obj.Id = GetList().Last().Id + 1;
+            if (_list.Count <= 0) obj.Id = 0;
+            else obj.Id = GetList().Last().Id + 1;
             File.AppendAllLines(_fileName, new string[]{ JsonConvert.SerializeObject(obj)});
             _list = ReadAll().Result;
         }
@@ -46,8 +50,11 @@ namespace ExerciseAppv2.Model
             List<Exercise> tempList = new List<Exercise>();
             foreach (string s in File.ReadAllLines(_fileName))
             {
-                Exercise item = JsonConvert.DeserializeObject<Exercise>(s);
-                tempList.Add(item);
+                if (!string.IsNullOrWhiteSpace(s))
+                {
+                    Exercise item = JsonConvert.DeserializeObject<Exercise>(s);
+                    tempList.Add(item);
+                }
                 //tempList.Add(JsonConvert.DeserializeObject<T>(s));
             }
 

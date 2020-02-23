@@ -13,6 +13,17 @@ namespace ExerciseAppv2.Model
 
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
+        public string TimeStamp
+        {
+            get
+            {
+                if (StartTime > DateTime.MinValue.AddDays(5))
+                {
+                    return StartTime.ToString("d");
+                }
+                else return "";
+            }
+        }
 
         public Workout(DateTime timeRightNow)
         {

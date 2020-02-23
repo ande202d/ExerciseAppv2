@@ -18,51 +18,18 @@ namespace ExerciseAppv2.ViewModel
     public class NewWorkoutViewModel : INotifyPropertyChanged
     {
         private List<Exercise> _listOfExercises;
-        private List<Set> _listOfSets;
-        private Workout _tempWorkout;
+        private Workout _currentWorkout;
         private Exercise _selectedExercise;
         private Set _setToAdd;
 
         public NewWorkoutViewModel()
         {
             AddSetCommand = new RelayCommand(AddSetMethod);
-            //_tempWorkout = new Workout(DateTime.Now);
-            _tempWorkout = CatalogWorkouts.Instance.GetList()[0];
 
             _listOfExercises = new List<Exercise>();
+
+            //_tempWorkout = CatalogWorkouts.Instance.GetList()[0];
             _listOfExercises = CatalogExercises.Instance.GetList();
-            //_listOfExercises.Add(new Exercise("Ex1", "Muscle1", "Des1"));
-            //_listOfExercises.Add(new Exercise("Ex2", "Muscle2", "Des2"));
-            //_listOfExercises.Add(new Exercise("Ex3", "Muscle3", "Des3"));
-            //_listOfExercises.Add(new Exercise("Ex4", "Muscle4", "Des4"));
-            //_listOfExercises.Add(new Exercise("Ex5", "Muscle5", "Des5"));
-
-            _listOfSets = new List<Set>();
-            _listOfSets = CatalogSets.Instance.GetList();
-            //_listOfSets.Add(new Set(_tempWorkout.Id, _listOfExercises[0].Id, 12, 50));
-            //_listOfSets.Add(new Set(_tempWorkout.Id, _listOfExercises[0].Id, 10, 55));
-            //_listOfSets.Add(new Set(_tempWorkout.Id, _listOfExercises[0].Id, 8, 60));
-            //_listOfSets.Add(new Set(_tempWorkout.Id, _listOfExercises[2].Id, 8, 80));
-            //_listOfSets.Add(new Set(_tempWorkout.Id, _listOfExercises[2].Id, 8, 80));
-            //_listOfSets.Add(new Set(_tempWorkout.Id, _listOfExercises[2].Id, 6, 90));
-            //_listOfSets.Add(new Set(_tempWorkout.Id, _listOfExercises[2].Id, 4, 95));
-            //_listOfSets.Add(new Set(_tempWorkout.Id, _listOfExercises[4].Id, 5, 120));
-            //_listOfSets.Add(new Set(_tempWorkout.Id, _listOfExercises[4].Id, 5, 120));
-            //_listOfSets.Add(new Set(_tempWorkout.Id, _listOfExercises[4].Id, 5, 120));
-            //_listOfSets.Add(new Set(_tempWorkout.Id, _listOfExercises[4].Id, 5, 120));
-            //_listOfSets.Add(new Set(_tempWorkout.Id, _listOfExercises[4].Id, 5, 120));
-
-            //CatalogWorkouts.Instance.Create(_tempWorkout);
-
-            //foreach (Exercise e in ListOfExercises)
-            //{
-            //    CatalogExercises.Instance.Create(e);
-            //}
-
-            //foreach (Set s in _listOfSets)
-            //{
-            //    CatalogSets.Instance.Create(s);
-            //}
         }
 
         public ICommand AddSetCommand { get; set; }
@@ -71,15 +38,26 @@ namespace ExerciseAppv2.ViewModel
         {
             get
             {
-                if (_selectedExercise == null) _selectedExercise = new Exercise();
+                if (_selectedExercise == null)
+                {
+                    Exercise e = new Exercise();
+                    e.Id = -1;
+                    _selectedExercise = e;
+                }
                 return _selectedExercise;
             }
             set
             {
                 _selectedExercise = value; 
-                OnPropertyChanged(nameof(ListOfSets));
+                OnPropertyChanged(nameof(LatestWorkouts));
+                OnPropertyChanged(nameof(LatestWorkoutsSets));
                 OnPropertyChanged();
             }
+        }
+
+        public bool isWorkoutStarted
+        {
+            get { return (_currentWorkout != null); }
         }
 
         public Set SetToAdd
@@ -96,37 +74,108 @@ namespace ExerciseAppv2.ViewModel
         {
             get { return new ObservableCollection<Exercise>(_listOfExercises); }
         }
-        public ObservableCollection<Set> ListOfSets
+
+        public List<Workout> LatestWorkouts
         {
             get
             {
-                List<Set> listToReturn = CatalogSets.Instance.GetList().FindAll(i => i.ExerciseId == SelectedExercise.Id);
+                int lenght = 5;
+                List<Workout> listToReturn = new List<Workout>();
+                foreach (Workout w in FindLatestWorkouts(SelectedExercise, lenght))
+                {
+                    listToReturn.Add(w);
+                }
 
-                return new ObservableCollection<Set>(listToReturn);
+                for (int i = listToReturn.Count; i < lenght; i++)
+                {
+                    listToReturn.Add(new Workout());
+                }
+                return listToReturn;
             }
         }
 
-        //public int[] LatestFiveWorkouts
-        //{
-        //    get
-        //    {
-        //        int[] a = new int[5];
-        //        foreach (Set s in ListOfSets)
-        //        {
-        //            if(a[0] )
-        //        }
-        //    }
-        //}
+        public List<List<Set>> LatestWorkoutsSets
+        {
+            get
+            {
+                List<List<Set>> tempListSets = new List<List<Set>>();
+                List<Workout> tempLatestWorkouts = LatestWorkouts;
 
-        public void AddSetMethod()
+                for (int i = 0; i < tempLatestWorkouts.Count; i++)
+                {
+                    if (tempLatestWorkouts[i].StartTime > DateTime.MinValue.AddDays(5))
+                    {
+                        List<Set> tempSets = FindAllRelatedSets(SelectedExercise)
+                            .FindAll(ii => ii.WorkoutId == tempLatestWorkouts[i].Id);
+                        tempListSets.Add(tempSets);
+                    }
+                }
+
+                return tempListSets;
+            }
+        }
+
+        public List<Set> FindAllRelatedSets(Exercise exercise)
+        {
+            List<Set> tempSets = CatalogSets.Instance.GetList().FindAll(i => i.ExerciseId == exercise.Id);
+            return tempSets;
+        }
+        public List<Workout> FindLatestWorkouts(Exercise exercise, int amount)
+        {
+            List<Set> tempSets = FindAllRelatedSets(exercise);
+
+            List<int> tempInts = new List<int>();
+            foreach (Set s in tempSets)
+            {
+                if(!tempInts.Contains(s.WorkoutId)) tempInts.Add(s.WorkoutId);
+            }
+
+            List<Workout> tempWorkouts = CatalogWorkouts.Instance.GetList().FindAll(i => tempInts.Contains(i.Id));
+            List<Workout> listToReturn = new List<Workout>();
+
+            for (int i = 0; i < amount; i++)
+            {
+                listToReturn.Add(new Workout());
+            }
+
+            for (int i = 0; i < amount; i++)
+            {
+                List<Workout> temptempWorkouts = tempWorkouts;
+                Workout latesWorkout = new Workout();
+                foreach (Workout w in temptempWorkouts)
+                {
+                    if (w.StartTime > latesWorkout.StartTime) latesWorkout = w;
+                }
+
+                listToReturn[i] = latesWorkout;
+                temptempWorkouts.Remove(latesWorkout);
+            }
+            
+
+            return listToReturn;
+        }
+
+
+        public async void AddSetMethod()
         {
             if (SelectedExercise != null && SetToAdd.Reps > 0)
             {
                 //_listOfSets.Add(new Set(_tempWorkout.Id, SelectedExercise.Id, SetToAdd.Reps, SetToAdd.Weight));
-                Set tempSet = new Set(_tempWorkout.Id, SelectedExercise.Id, SetToAdd.Reps, SetToAdd.Weight);
-                CatalogSets.Instance.Create(tempSet);
-                OnPropertyChanged(nameof(ListOfSets));
-                
+                if (_currentWorkout == null)
+                {
+
+                    await CatalogWorkouts.Instance.Create(new Workout(DateTime.Now));
+                    _currentWorkout = CatalogWorkouts.Instance.GetList().Last();
+                }
+
+                if (SelectedExercise.Id != -1)
+                {
+                    Set tempSet = new Set(_currentWorkout.Id, SelectedExercise.Id, SetToAdd.Reps, SetToAdd.Weight);
+                    CatalogSets.Instance.Create(tempSet);
+                }
+                OnPropertyChanged(nameof(SelectedExercise));
+                OnPropertyChanged(nameof(LatestWorkouts));
+                OnPropertyChanged(nameof(LatestWorkoutsSets));
             }
         }
 

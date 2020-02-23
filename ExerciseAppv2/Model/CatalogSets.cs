@@ -14,8 +14,11 @@ namespace ExerciseAppv2.Model
         private string _fileName = "dataSets.json";
         private CatalogSets()
         {
-            if (!File.Exists(_fileName)) File.Create(_fileName);
-            _list = ReadAll().Result;
+            if (!File.Exists(_fileName)) File.Create(_fileName).Dispose();
+
+            var v = ReadAll();
+            v.Wait();
+            _list = v.Result;
         }
 
         #region Singleton
@@ -26,8 +29,8 @@ namespace ExerciseAppv2.Model
         {
             get
             {
-                if (_instance == null) return new CatalogSets();
-                return Instance;
+                if (_instance == null) _instance = new CatalogSets();
+                return _instance;
             }
         }
 
@@ -37,7 +40,8 @@ namespace ExerciseAppv2.Model
 
         public async Task Create(Set obj)
         {
-            obj.Id = GetList().Last().Id + 1;
+            if (_list.Count <= 0) obj.Id = 0;
+            else obj.Id = GetList().Last().Id + 1;
             File.AppendAllLines(_fileName, new string[]{ JsonConvert.SerializeObject(obj)});
             _list = ReadAll().Result;
         }
@@ -46,8 +50,11 @@ namespace ExerciseAppv2.Model
             List<Set> tempList = new List<Set>();
             foreach (string s in File.ReadAllLines(_fileName))
             {
-                Set item = JsonConvert.DeserializeObject<Set>(s);
-                tempList.Add(item);
+                if (!string.IsNullOrWhiteSpace(s))
+                {
+                    Set item = JsonConvert.DeserializeObject<Set>(s);
+                    tempList.Add(item);
+                }
                 //tempList.Add(JsonConvert.DeserializeObject<T>(s));
             }
 
