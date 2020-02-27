@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Windows.UI.Xaml;
 using ExerciseAppv2.Common;
 using ExerciseAppv2.Model;
 using ExerciseAppv2.Properties;
@@ -158,7 +160,7 @@ namespace ExerciseAppv2.ViewModel
 
         public async void AddSetMethod()
         {
-            if (SelectedExercise != null && SetToAdd.Reps > 0)
+            /*if (SelectedExercise != null && SetToAdd.Reps > 0)
             {
                 //_listOfSets.Add(new Set(_tempWorkout.Id, SelectedExercise.Id, SetToAdd.Reps, SetToAdd.Weight));
                 if (_currentWorkout == null)
@@ -176,7 +178,40 @@ namespace ExerciseAppv2.ViewModel
                 OnPropertyChanged(nameof(SelectedExercise));
                 OnPropertyChanged(nameof(LatestWorkouts));
                 OnPropertyChanged(nameof(LatestWorkoutsSets));
+            }*/
+
+            //string path = "C:\Users\ander\Documents\Private\Programmer\dataDB.mdf";
+            string path = Directory.GetCurrentDirectory() + @"..\..\..\..\" +"dataDB.mdf";
+            string connString =
+                @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\ander\Documents\Private\Programmer\dataDB.mdf;Integrated Security=True;Connect Timeout=30";
+
+            //using (SqlConnection conn = new SqlConnection(connString))
+            //{
+            //    conn.Open();
+            //    string insertQuery = @"INSERT INTO Workout VALUES (@p1, @p2)";
+
+            //    using (SqlCommand cmd = new SqlCommand(insertQuery, conn))
+            //    {
+            //        Workout w = new Workout(DateTime.Now);
+            //        cmd.Parameters.AddWithValue("@p1", w.StartTime);
+            //        cmd.Parameters.AddWithValue("@p2", DateTime.MaxValue);
+
+            //        cmd.ExecuteNonQuery();
+            //    }
+            //}
+            SqlConnection conn = new SqlConnection(connString);
+            conn.Open();
+            string insertQuery = "INSERT INTO Workout (StartTime, EndTime) VALUES (p1, p2)";
+
+            using (SqlCommand cmd = new SqlCommand(insertQuery, conn))
+            {
+                Workout w = new Workout(DateTime.Now);
+                cmd.Parameters.AddWithValue("p1", w.StartTime);
+                cmd.Parameters.AddWithValue("p2", DateTime.MaxValue);
+
+                cmd.ExecuteNonQuery();
             }
+            conn.Dispose();
         }
 
         #region PropertyChanged
