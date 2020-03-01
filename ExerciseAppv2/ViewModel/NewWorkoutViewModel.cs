@@ -15,6 +15,7 @@ using ExerciseAppv2.Common;
 using ExerciseAppv2.Model;
 using ExerciseAppv2.Properties;
 using Newtonsoft.Json;
+using Microsoft.Data.Sqlite;
 
 namespace ExerciseAppv2.ViewModel
 {
@@ -182,17 +183,17 @@ namespace ExerciseAppv2.ViewModel
             }*/
 
             //string path = "C:\Users\ander\Documents\Private\Programmer\dataDB.mdf";
-            string path = "Data Source=" + @"F:\Users\Anders\Private\Programering\Visual Studio UWP Apps\ExerciseAppv2\data.db; New=True; Compress=True; Version=3";
+            string path = "Filename=" + @"F:\Users\Anders\Private\Programering\Visual Studio UWP Apps\ExerciseAppv2\data.db;";
             string connString =
                 @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\ander\Documents\Private\Programmer\dataDB.mdf;Integrated Security=True;Connect Timeout=30";
             SqlConnectionStringBuilder connBuilder = new SqlConnectionStringBuilder();
             connBuilder.DataSource = "F:/Users/Anders/Private/Programering/Visual Studio UWP Apps/ExerciseAppv2/data.db";
 
-            SqlConnection conn = new SqlConnection(path);
+            SqliteConnection conn = new SqliteConnection(path);
             conn.Open();
-            string insertQuery = "INSERT INTO Workout (StartTime, EndTime) VALUES (p1, p2)";
+            string insertQuery = "INSERT INTO Workouts (StartTime, EndTime) VALUES (p1, p2)";
 
-            using (SqlCommand cmd = new SqlCommand(insertQuery, conn))
+            using (SqliteCommand cmd = new SqliteCommand(insertQuery, conn))
             {
                 Workout w = new Workout(DateTime.Now);
                 cmd.Parameters.AddWithValue("p1", w.StartTime);
