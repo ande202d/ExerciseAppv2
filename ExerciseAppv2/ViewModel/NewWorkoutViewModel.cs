@@ -162,46 +162,21 @@ namespace ExerciseAppv2.ViewModel
 
         public async void AddSetMethod()
         {
-            /*if (SelectedExercise != null && SetToAdd.Reps > 0)
-            {
-                //_listOfSets.Add(new Set(_tempWorkout.Id, SelectedExercise.Id, SetToAdd.Reps, SetToAdd.Weight));
-                if (_currentWorkout == null)
-                {
+            Catalog c = Catalog.Instance;
 
-                    await CatalogWorkouts.Instance.Create(new Workout(DateTime.Now));
-                    _currentWorkout = CatalogWorkouts.Instance.GetList().Last();
-                }
+            //Workout w = new Workout(DateTime.Now);
+            //w.EndTime = w.StartTime.AddHours(2);
+            //c.Add(w);
 
-                if (SelectedExercise.Id != -1)
-                {
-                    Set tempSet = new Set(_currentWorkout.Id, SelectedExercise.Id, SetToAdd.Reps, SetToAdd.Weight);
-                    CatalogSets.Instance.Create(tempSet);
-                }
-                OnPropertyChanged(nameof(SelectedExercise));
-                OnPropertyChanged(nameof(LatestWorkouts));
-                OnPropertyChanged(nameof(LatestWorkoutsSets));
-            }*/
+            //c.Add(new Exercise("Ex1", "MG1", "Description1"));
+            //c.Add(new Exercise("Ex2", "MG2", "Description2"));
+            //c.Add(new Exercise("Ex3", "MG3", "Description3"));
 
-            //string path = "C:\Users\ander\Documents\Private\Programmer\dataDB.mdf";
-            string path = "Filename=" + @"F:\Users\Anders\Private\Programering\Visual Studio UWP Apps\ExerciseAppv2\data.db;";
-            string connString =
-                @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\ander\Documents\Private\Programmer\dataDB.mdf;Integrated Security=True;Connect Timeout=30";
-            SqlConnectionStringBuilder connBuilder = new SqlConnectionStringBuilder();
-            connBuilder.DataSource = "F:/Users/Anders/Private/Programering/Visual Studio UWP Apps/ExerciseAppv2/data.db";
+            //c.Add(new Set(7, 5, 3, 50));
 
-            SqliteConnection conn = new SqliteConnection(path);
-            conn.Open();
-            string insertQuery = "INSERT INTO Workouts (StartTime, EndTime) VALUES (p1, p2)";
-
-            using (SqliteCommand cmd = new SqliteCommand(insertQuery, conn))
-            {
-                Workout w = new Workout(DateTime.Now);
-                cmd.Parameters.AddWithValue("p1", w.StartTime);
-                cmd.Parameters.AddWithValue("p2", DateTime.MaxValue);
-
-                cmd.ExecuteNonQuery();
-            }
-            conn.Dispose();
+            Exercise ee = (Exercise)c.Read(typeof(Exercise), 5);
+            Workout ww = (Workout)c.Read(typeof(Workout), 10);
+            Set ss = (Set)c.Read(typeof(String), 7);
         }
 
         #region PropertyChanged
