@@ -30,10 +30,7 @@ namespace ExerciseAppv2.ViewModel
         {
             AddSetCommand = new RelayCommand(AddSetMethod);
 
-            _listOfExercises = new List<Exercise>();
-
-            //_tempWorkout = CatalogWorkouts.Instance.GetList()[0];
-            _listOfExercises = CatalogExercises.Instance.GetList();
+            _listOfExercises = Catalog.Instance.GetAllExercises();
         }
 
         public ICommand AddSetCommand { get; set; }
@@ -76,7 +73,7 @@ namespace ExerciseAppv2.ViewModel
 
         public ObservableCollection<Exercise> ListOfExercises
         {
-            get { return new ObservableCollection<Exercise>(_listOfExercises); }
+            get { return new ObservableCollection<Exercise>(Catalog.Instance.GetAllExercises()); }
         }
 
         public List<Workout> LatestWorkouts
@@ -84,16 +81,39 @@ namespace ExerciseAppv2.ViewModel
             get
             {
                 int lenght = 5;
+
+                string text = "SELECT * FROM Workouts " +
+                              $"WHERE Id IN (SELECT WorkoutId FROM Sets WHERE ExerciseId={SelectedExercise.Id})";
+
                 List<Workout> listToReturn = new List<Workout>();
-                foreach (Workout w in FindLatestWorkouts(SelectedExercise, lenght))
+
+                foreach (Workout w in Catalog.Instance.GetWorkoutsFromText(text))
                 {
-                    listToReturn.Add(w);
+                    if (listToReturn.Count < lenght) listToReturn.Add(w);
+                    else
+                    {
+                        Workout replaceHolder = new Workout(DateTime.MaxValue);
+                        for (int i = 0; i < listToReturn.Count; i++)
+                        {
+                            if (listToReturn[i].StartTime < w.StartTime)
+                            {
+                                if (listToReturn[i].StartTime < replaceHolder.StartTime)
+                                {
+                                    replaceHolder = listToReturn[i];
+                                }
+                            }
+                        }
+
+                        if (replaceHolder.StartTime != DateTime.MaxValue)
+                        {
+                            listToReturn.Remove(replaceHolder);
+                            listToReturn.Add(w);
+                        }
+                    }
                 }
 
-                for (int i = listToReturn.Count; i < lenght; i++)
-                {
-                    listToReturn.Add(new Workout());
-                }
+                listToReturn.Sort((x, y) => DateTime.Compare(y.StartTime, x.StartTime));
+
                 return listToReturn;
             }
         }
@@ -102,81 +122,47 @@ namespace ExerciseAppv2.ViewModel
         {
             get
             {
-                List<List<Set>> tempListSets = new List<List<Set>>();
+                List<List<Set>> listToReturn = new List<List<Set>>();
                 List<Workout> tempLatestWorkouts = LatestWorkouts;
 
-                for (int i = 0; i < tempLatestWorkouts.Count; i++)
+                foreach (Workout w in tempLatestWorkouts)
                 {
-                    if (tempLatestWorkouts[i].StartTime > DateTime.MinValue.AddDays(5))
-                    {
-                        List<Set> tempSets = FindAllRelatedSets(SelectedExercise)
-                            .FindAll(ii => ii.WorkoutId == tempLatestWorkouts[i].Id);
-                        tempListSets.Add(tempSets);
-                    }
+                    string text = "SELECT * FROM Sets " +
+                                  $"WHERE (WorkoutId={w.Id} AND ExerciseId={SelectedExercise.Id})";
+                    listToReturn.Add(Catalog.Instance.GetSetsFromText(text));
                 }
 
-                return tempListSets;
+                return listToReturn;
             }
-        }
-
-        public List<Set> FindAllRelatedSets(Exercise exercise)
-        {
-            List<Set> tempSets = CatalogSets.Instance.GetList().FindAll(i => i.ExerciseId == exercise.Id);
-            return tempSets;
-        }
-        public List<Workout> FindLatestWorkouts(Exercise exercise, int amount)
-        {
-            List<Set> tempSets = FindAllRelatedSets(exercise);
-
-            List<int> tempInts = new List<int>();
-            foreach (Set s in tempSets)
-            {
-                if(!tempInts.Contains(s.WorkoutId)) tempInts.Add(s.WorkoutId);
-            }
-
-            List<Workout> tempWorkouts = CatalogWorkouts.Instance.GetList().FindAll(i => tempInts.Contains(i.Id));
-            List<Workout> listToReturn = new List<Workout>();
-
-            for (int i = 0; i < amount; i++)
-            {
-                listToReturn.Add(new Workout());
-            }
-
-            for (int i = 0; i < amount; i++)
-            {
-                List<Workout> temptempWorkouts = tempWorkouts;
-                Workout latesWorkout = new Workout();
-                foreach (Workout w in temptempWorkouts)
-                {
-                    if (w.StartTime > latesWorkout.StartTime) latesWorkout = w;
-                }
-
-                listToReturn[i] = latesWorkout;
-                temptempWorkouts.Remove(latesWorkout);
-            }
-            
-
-            return listToReturn;
         }
 
 
         public async void AddSetMethod()
         {
-            Catalog c = Catalog.Instance;
+            //foreach (var i in CatalogExercises.Instance.GetList())
+            //{
+            //    i.Id++;
+            //    Catalog.Instance.Add(i);
+            //}
+            //foreach (var i in CatalogWorkouts.Instance.GetList())
+            //{
+            //    i.Id++;
+            //    Catalog.Instance.Add(i);
+            //}
+            //foreach (var i in CatalogSets.Instance.GetList())
+            //{
+            //    i.ExerciseId++;
+            //    i.WorkoutId++;
+            //    Catalog.Instance.Add(i);
+            //}
 
-            //Workout w = new Workout(DateTime.Now);
-            //w.EndTime = w.StartTime.AddHours(2);
-            //c.Add(w);
+            //Exercise ee = (Exercise)Catalog.Instance.Read(typeof(Exercise), 5);
+            //Workout ww = (Workout)Catalog.Instance.Read(typeof(Workout), 10);
+            //Set ss = (Set)Catalog.Instance.Read(typeof(Set), 5);
 
-            //c.Add(new Exercise("Ex1", "MG1", "Description1"));
-            //c.Add(new Exercise("Ex2", "MG2", "Description2"));
-            //c.Add(new Exercise("Ex3", "MG3", "Description3"));
-
-            //c.Add(new Set(7, 5, 3, 50));
-
-            Exercise ee = (Exercise)c.Read(typeof(Exercise), 5);
-            Workout ww = (Workout)c.Read(typeof(Workout), 10);
-            Set ss = (Set)c.Read(typeof(String), 7);
+            List<Exercise> list1 = Catalog.Instance.GetAllExercises();
+            List<Workout> list2 = Catalog.Instance.GetAllWorkouts();
+            List<Set> list3 = Catalog.Instance.GetAllSets();
         }
 
         #region PropertyChanged
