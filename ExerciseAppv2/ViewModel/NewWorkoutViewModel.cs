@@ -10,7 +10,9 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Windows.UI;
 using Windows.UI.Xaml;
+using Windows.UI.Xaml.Media;
 using ExerciseAppv2.Common;
 using ExerciseAppv2.Model;
 using ExerciseAppv2.Properties;
@@ -25,15 +27,19 @@ namespace ExerciseAppv2.ViewModel
         private Workout _currentWorkout;
         private Exercise _selectedExercise;
         private Set _setToAdd;
+        private bool _workoutStarted;
 
         public NewWorkoutViewModel()
         {
             AddSetCommand = new RelayCommand(AddSetMethod);
-
+            WorkoutStartedCommand = new RelayCommand(WorkoutStartedMethod);
+            _workoutStarted = false;
             _listOfExercises = Catalog.Instance.GetAllExercises();
         }
 
         public ICommand AddSetCommand { get; set; }
+        public ICommand WorkoutStartedCommand { get; set; }
+
 
         public Exercise SelectedExercise
         {
@@ -56,11 +62,6 @@ namespace ExerciseAppv2.ViewModel
             }
         }
 
-        public bool isWorkoutStarted
-        {
-            get { return (_currentWorkout != null); }
-        }
-
         public Set SetToAdd
         {
             get
@@ -70,6 +71,46 @@ namespace ExerciseAppv2.ViewModel
             }
             set { _setToAdd = value; }
         }
+
+        #region WorkoutStarted (CurrentWorkout)
+
+        public bool WorkoutStarted
+        {
+            get { return _workoutStarted;}
+            set { _workoutStarted = value; }
+        }
+
+        public SolidColorBrush WorkoutStartedColor
+        {
+            get
+            {
+                if (WorkoutStarted) return new SolidColorBrush(Colors.Red);
+                else return new SolidColorBrush(Colors.ForestGreen);
+            }
+        }
+
+        public string WorkoutStartedText
+        {
+            get
+            {
+                if (WorkoutStarted) return "STOP";
+                else return "START";
+            }
+        }
+
+        public Workout CurrentWorkout
+        {
+            get { return _currentWorkout; }
+            set
+            {
+                _currentWorkout = value;
+                OnPropertyChanged();
+            }
+        } 
+
+        #endregion
+
+        #region List to be seen
 
         public ObservableCollection<Exercise> ListOfExercises
         {
@@ -136,34 +177,52 @@ namespace ExerciseAppv2.ViewModel
             }
         }
 
+        #endregion
+
+        #region Methods
 
         public async void AddSetMethod()
         {
-            //foreach (var i in CatalogExercises.Instance.GetList())
-            //{
-            //    i.Id++;
-            //    Catalog.Instance.Add(i);
-            //}
-            //foreach (var i in CatalogWorkouts.Instance.GetList())
-            //{
-            //    i.Id++;
-            //    Catalog.Instance.Add(i);
-            //}
-            //foreach (var i in CatalogSets.Instance.GetList())
-            //{
-            //    i.ExerciseId++;
-            //    i.WorkoutId++;
-            //    Catalog.Instance.Add(i);
-            //}
-
-            //Exercise ee = (Exercise)Catalog.Instance.Read(typeof(Exercise), 5);
-            //Workout ww = (Workout)Catalog.Instance.Read(typeof(Workout), 10);
-            //Set ss = (Set)Catalog.Instance.Read(typeof(Set), 5);
-
-            List<Exercise> list1 = Catalog.Instance.GetAllExercises();
-            List<Workout> list2 = Catalog.Instance.GetAllWorkouts();
-            List<Set> list3 = Catalog.Instance.GetAllSets();
+            if (WorkoutStarted && SelectedExercise.Id != -1)
+            {
+                Set s = SetToAdd;
+                s.WorkoutId = CurrentWorkout.Id;
+                s.ExerciseId = SelectedExercise.Id;
+                Catalog.Instance.Add(s);
+            }
+            OnPropertyChanged(nameof(LatestWorkouts));
+            OnPropertyChanged(nameof(LatestWorkoutsSets));
         }
+
+        public void WorkoutStartedMethod()
+        {
+            if (WorkoutStarted)
+            {
+                if (Catalog.Instance.GetSetsFromText("SELECT * FROM Sets " +
+                                                     $"WHERE WorkoutId={CurrentWorkout.Id}").Count > 0)
+                {
+                    CurrentWorkout.EndTime = DateTime.Now;
+                    Catalog.Instance.Update(CurrentWorkout);
+                }
+                else
+                {
+                    Catalog.Instance.Remove(typeof(Workout), CurrentWorkout.Id);
+                }
+                CurrentWorkout = null;
+                WorkoutStarted = false;
+            }
+            else
+            {
+                Catalog.Instance.Add(new Workout(DateTime.Now));
+                CurrentWorkout = Catalog.Instance.GetWorkoutsFromText("SELECT * FROM Workouts ORDER BY Id DESC LIMIT 1")[0];
+                WorkoutStarted = true;
+            }
+            OnPropertyChanged(nameof(WorkoutStarted));
+            OnPropertyChanged(nameof(WorkoutStartedColor));
+            OnPropertyChanged(nameof(WorkoutStartedText));
+        } 
+
+        #endregion
 
         #region PropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;

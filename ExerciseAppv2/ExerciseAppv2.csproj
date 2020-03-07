@@ -132,8 +132,13 @@
     <Compile Include="Model\Set.cs" />
     <Compile Include="Model\Workout.cs" />
     <Compile Include="Properties\Annotations.cs" />
+    <Compile Include="Properties\Annotations1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ViewModel\ExerciseViewModel.cs" />
     <Compile Include="ViewModel\NewWorkoutViewModel.cs" />
+    <Compile Include="View\ExerciseView.xaml.cs">
+      <DependentUpon>ExerciseView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\NewWorkout.xaml.cs">
       <DependentUpon>NewWorkout.xaml</DependentUpon>
     </Compile>
@@ -163,6 +168,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="View\ExerciseView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\NewWorkout.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -174,6 +183,9 @@
     </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.2.8</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Uwp.Managed">
+      <Version>2.0.1</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>12.0.3</Version>

@@ -126,7 +126,7 @@ namespace ExerciseAppv2.Model
                     item.Id = reader.GetInt32(0);
                     item.Name = reader.GetString(1);
                     item.MuscleGroup = reader.GetString(2);
-                    item.Descreption = reader.GetString(3);
+                    item.Description = reader.GetString(3);
 
                     listToReturn.Add(item);
                     item = new Exercise();
@@ -229,7 +229,7 @@ namespace ExerciseAppv2.Model
 
                 string cmdText = "INSERT INTO Exercises (Name, MuscleGroup, Description) ";
                 cmdText += string.Format("VALUES ('{0}','{1}','{2}')",
-                    e.Name, e.MuscleGroup, e.Descreption);
+                    e.Name, e.MuscleGroup, e.Description);
 
                 ExecuteQuery(cmdText);
             }
@@ -257,7 +257,41 @@ namespace ExerciseAppv2.Model
             return null;
         }
 
-        //public void Update()
+        public void Update(object item)
+        {
+            if (item.GetType() == typeof(Set))
+            {
+                Set s = (Set)item;
+
+                string cmdText = "REPLACE INTO Sets (Id, WorkoutId, ExerciseId, Reps, Weight) ";
+                cmdText += string.Format("VALUES ('{0}','{1}','{2}','{3}','{4}')",
+                    s.Id, s.WorkoutId, s.ExerciseId, s.Reps, s.Weight);
+
+                ExecuteQuery(cmdText);
+            }
+
+            else if (item.GetType() == typeof(Workout))
+            {
+                Workout w = (Workout)item;
+
+                string cmdText = "REPLACE INTO Workouts (Id, StartTime, EndTime) ";
+                cmdText += string.Format("VALUES ('{0}','{1}','{2}')",
+                    w.Id, w.StartTime, w.EndTime);
+
+                ExecuteQuery(cmdText);
+            }
+
+            else if (item.GetType() == typeof(Exercise))
+            {
+                Exercise e = (Exercise)item;
+
+                string cmdText = "REPLACE INTO Exercises (Id, Name, MuscleGroup, Description) ";
+                cmdText += string.Format("VALUES ('{0}','{1}','{2}','{3}')",
+                    e.Id, e.Name, e.MuscleGroup, e.Description);
+
+                ExecuteQuery(cmdText);
+            }
+        }
 
         public List<Exercise> GetAllExercises() { return DataToExercises($"SELECT * FROM Exercises"); }
         public List<Workout> GetAllWorkouts() { return DataToWorkouts($"SELECT * FROM Workouts"); }

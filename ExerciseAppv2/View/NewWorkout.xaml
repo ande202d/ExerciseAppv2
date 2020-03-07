@@ -6,6 +6,8 @@
     xmlns:viewModel="using:ExerciseAppv2.ViewModel"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
+    xmlns:core="using:Microsoft.Xaml.Interactions.Core"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <Page.DataContext>
@@ -20,27 +22,47 @@
             </Grid.ColumnDefinitions>
 
             <!--LAVER LISTVIEW TIL ALLE EXERCISES-->
-            <ListView Grid.Column="0" ItemsSource="{Binding ListOfExercises}" SelectedItem="{Binding SelectedExercise, Mode=TwoWay}">
-                <ListView.ItemContainerStyle>
-                    <Style TargetType="ListViewItem">
-                        <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
-                    </Style>
-                </ListView.ItemContainerStyle>
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"></RowDefinition>
+                    <RowDefinition Height="7*"></RowDefinition>
+                    <RowDefinition Height="2*"></RowDefinition>
+                </Grid.RowDefinitions>
 
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="4*"></ColumnDefinition>
-                                <ColumnDefinition Width="6*"></ColumnDefinition>
-                            </Grid.ColumnDefinitions>
+                <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding CurrentWorkout.TimeStamp}" FontSize="50"></TextBlock>
+                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text=" id:" FontSize="50"></TextBlock>
+                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding CurrentWorkout.Id}" FontSize="50"></TextBlock>
+                </StackPanel>
 
-                            <TextBlock Grid.Column="0" Text="{Binding Name}"></TextBlock>
-                            <TextBlock Grid.Column="1" Text="{Binding MuscleGroup}"></TextBlock>
-                        </Grid>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+                <ListView Grid.Row="1" ItemsSource="{Binding ListOfExercises}" SelectedItem="{Binding SelectedExercise, Mode=TwoWay}">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="4*"></ColumnDefinition>
+                                    <ColumnDefinition Width="6*"></ColumnDefinition>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Text="{Binding Name}"></TextBlock>
+                                <TextBlock Grid.Column="1" Text="{Binding MuscleGroup}"></TextBlock>
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <!--<AppBarButton Grid.Column="2" Content="Add" HorizontalAlignment="Center" Command="{Binding AddSetCommand}" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"></AppBarButton>-->
+
+                <AppBarButton Grid.Row="2" Height="100" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center" 
+                              Command="{Binding WorkoutStartedCommand}" Background="{Binding WorkoutStartedColor}" Content="{Binding WorkoutStartedText}"></AppBarButton>
+
+            </Grid>
 
             <!--LAVER GRID TIL HØJRE DEL AF SKÆRMEN-->
             <Grid Grid.Column="1">
@@ -50,8 +72,15 @@
                     <RowDefinition Height="3*"></RowDefinition>
                 </Grid.RowDefinitions>
 
-                <!--OMRÅDE TIL DESCREPTION-->
-                <TextBlock Grid.Row="0" Text="{Binding SelectedExercise.Descreption}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"></TextBlock>
+                <!--OMRÅDE TIL DESCRIPTION-->
+                <AppBarButton Grid.Row="0" Label="GoTo Exercises">
+                    <interactivity:Interaction.Behaviors>
+                        <core:EventTriggerBehavior EventName="Click">
+                            <core:NavigateToPageAction TargetPage="ExerciseAppv2.View.ExerciseView"/>
+                        </core:EventTriggerBehavior>
+                    </interactivity:Interaction.Behaviors>
+                </AppBarButton>
+                <TextBlock Grid.Row="0" Text="{Binding SelectedExercise.Description}" VerticalAlignment="Center" HorizontalAlignment="Stretch"></TextBlock>
 
                 <!--OMRÅDE TIL TIDLIGERE DATA OMRKING EXRECISEN-->
                 <Grid Grid.Row="1">
@@ -156,30 +185,6 @@
 
 
                 </Grid>
-                <!--<ListView Grid.Row="1" ItemsSource="{Binding ListOfSets}">
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
-                        </Style>
-                    </ListView.ItemContainerStyle>
-
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{Binding Id}"></TextBlock>
-                                <TextBlock Text=", "></TextBlock>
-                                <TextBlock Text="{Binding WorkoutId}"></TextBlock>
-                                <TextBlock Text=", "></TextBlock>
-                                <TextBlock Text="{Binding ExerciseId}"></TextBlock>
-                                <TextBlock Text=", "></TextBlock>
-                                <TextBlock Text="{Binding Reps}"></TextBlock>
-                                <TextBlock Text=", "></TextBlock>
-                                <TextBlock Text="{Binding Weight}"></TextBlock>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-
-                </ListView>-->
 
                 <!--OMRÅDE TIL REGISTRERING AF SETS-->
                 <Grid Grid.Row="2">

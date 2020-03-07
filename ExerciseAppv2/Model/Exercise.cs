@@ -12,21 +12,21 @@ namespace ExerciseAppv2.Model
         public int Id { get; set; }
         public string Name { get; set; }
         public string MuscleGroup { get; set; }
-        public string Descreption { get; set; }
+        public string Description { get; set; }
 
         public Exercise()
         {
             
         }
 
-        public Exercise(string name, string muscleGroup, string descreption)
+        public Exercise(string name, string muscleGroup, string description)
         {
             Id = _idCounter;
             _idCounter++;
 
             Name = name;
             MuscleGroup = muscleGroup;
-            Descreption = descreption;
+            Description = description;
         }
     }
 }
