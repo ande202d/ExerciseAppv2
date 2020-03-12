@@ -196,13 +196,14 @@
 
                     <StackPanel Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <TextBlock Text="Reps"></TextBlock>
-                        <TextBox Text="{Binding SetToAdd.Reps, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+                        <TextBox Text="{Binding SetToAdd2.Reps, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding WorkoutStarted}"></TextBox>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <TextBlock Text="Weight"></TextBlock>
-                        <TextBox Text="{Binding SetToAdd.Weight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+                        <TextBox Text="{Binding SetToAdd2.Weight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding WorkoutStarted}"></TextBox>
                     </StackPanel>
-                    <AppBarButton Grid.Column="2" Content="Add" HorizontalAlignment="Center" Command="{Binding AddSetCommand}" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"></AppBarButton>
+                    <AppBarButton Grid.Column="2" Content="Add" HorizontalAlignment="Center" Command="{Binding AddSetCommand}" VerticalAlignment="Center" 
+                                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsEnabled="{Binding WorkoutStarted}"></AppBarButton>
                 </Grid>
 
             </Grid>

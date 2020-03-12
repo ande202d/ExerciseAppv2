@@ -16,7 +16,7 @@ namespace ExerciseAppv2.Model
 
         public Exercise()
         {
-            
+
         }
 
         public Exercise(string name, string muscleGroup, string description)

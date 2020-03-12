@@ -71,19 +71,40 @@ namespace ExerciseAppv2.ViewModel
             get
             {
                 List<List<Set>> listToReturn = new List<List<Set>>();
-                List<Set> fullList = Catalog.Instance.GetSetsFromText($"SELECT * FROM Sets WHERE ExerciseId={SelectedExercise.Id}");
-                var query1 =
-                    from s in fullList
-                    group s by s.WorkoutId;
-                foreach (var v in query1)
+                //List<Set> fullList = Catalog.Instance.GetSetsFromText($"SELECT * FROM Sets WHERE ExerciseId={SelectedExercise.Id}");
+                //var query1 =
+                //    from s in fullList
+                //    //select s;
+                //    group s by s.WorkoutId;
+                //foreach (var v in query1)
+                //{
+                //    List<Set> tempList = new List<Set>();
+                //    foreach (Set ss in v)
+                //    {
+                //        tempList.Add(ss);
+                //    }
+                //    listToReturn.Add(tempList);
+                //}
+
+                //string hej = "SELECT * FROM Sets " +
+                //             $"WHERE ExerciseId={SelectedExercise.Id}) " +
+                //             $"ORDER BY StartTime DESC ";
+
+                string text = $"SELECT * FROM Workouts " +
+                              $"WHERE Id IN " +
+                              $"(SELECT WorkoutId FROM Sets " +
+                              $"WHERE ExerciseId={SelectedExercise.Id}) " +
+                              $"ORDER BY StartTime DESC";
+
+                List<Workout> list = Catalog.Instance.GetWorkoutsFromText(text);
+                var query2 =
+                    from w in list
+                    select w;
+                foreach (Workout ww in query2)
                 {
-                    List<Set> tempList = new List<Set>();
-                    foreach (Set ss in v)
-                    {
-                        tempList.Add(ss);
-                    }
-                    listToReturn.Add(tempList);
+                    listToReturn.Add(Catalog.Instance.GetSetsFromText($"SELECT * FROM Sets WHERE (WorkoutId={ww.Id}) AND (ExerciseId={SelectedExercise.Id})"));
                 }
+
 
                 return listToReturn;
             }
@@ -112,8 +133,10 @@ namespace ExerciseAppv2.ViewModel
 
         public void CreateExerciseMethod()
         {
-            if (!string.IsNullOrEmpty(
-                Catalog.Instance.GetExercisesFromText("SELECT * FROM Exercises ORDER BY Id DESC LIMIT 1")[0].Name))
+            List<Exercise> tempList = new List<Exercise>();
+
+            tempList = Catalog.Instance.GetExercisesFromText("SELECT * FROM Exercises ORDER BY Id DESC LIMIT 1");
+            if (tempList.Count == 0 || !string.IsNullOrEmpty(tempList[0].Name))
             {
                 Exercise e = new Exercise();
                 Catalog.Instance.Add(e);
@@ -125,9 +148,9 @@ namespace ExerciseAppv2.ViewModel
         {
             if (SelectedExercise.Id != -1)
             {
-                //Catalog.Instance.Update(SelectedExercise);
-                //OnPropertyChanged(nameof(SelectedExercise));
-                //OnPropertyChanged(nameof(ListOfExercises));
+                Catalog.Instance.Update(SelectedExercise);
+                OnPropertyChanged(nameof(SelectedExercise));
+                OnPropertyChanged(nameof(ListOfExercises));
                 var hej = PrevData;
             }
         }

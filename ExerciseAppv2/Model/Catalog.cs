@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SQLite;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -79,8 +80,10 @@ namespace ExerciseAppv2.Model
                           "(Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " +
                           "WorkoutId INTEGER NOT NULL, " +
                           "ExerciseId INTEGER NOT NULL, " +
-                          "Reps INTEGER NOT NULL, " +
-                          "Weight INTEGER NOT NULL, " +
+                          "SetData String NOT NULL, " +
+                          //"Reps INTEGER NOT NULL, " +
+                          //"Weight INTEGER NOT NULL, " +
+                          "UNIQUE(WorkoutId, ExerciseId)" +
                           "FOREIGN KEY(ExerciseId) REFERENCES Exercises(Id) ON DELETE NO ACTION," +
                           "FOREIGN KEY(WorkoutId) REFERENCES Workouts(Id) ON DELETE NO ACTION)";
                 using (SqliteCommand cmd = new SqliteCommand(cmdText, db))
@@ -180,14 +183,23 @@ namespace ExerciseAppv2.Model
 
                 while (reader.Read())
                 {
-                    item.Id = reader.GetInt32(0);
-                    item.WorkoutId = reader.GetInt32(1);
-                    item.ExerciseId = reader.GetInt32(2);
-                    item.Reps = reader.GetInt32(3);
-                    item.Weight = reader.GetInt32(4);
+                    string s = reader.GetString(3);
+                    foreach (string s1 in s.Split("$", StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        item.Id = reader.GetInt32(0);
+                        item.WorkoutId = reader.GetInt32(1);
+                        item.ExerciseId = reader.GetInt32(2);
 
-                    listToReturn.Add(item);
-                    item = new Set();
+                        string[] hej = s1.Split("x");
+                        int hej1 = int.Parse(hej[0]);
+                        double hej2 = double.Parse(hej[1]);
+
+                        item.Reps = int.Parse(s1.Split("x")[0]);
+                        item.Weight = double.Parse(s1.Split("x")[1]);
+
+                        listToReturn.Add(item);
+                        item = new Set();
+                    }
                 }
             }
 
@@ -199,17 +211,83 @@ namespace ExerciseAppv2.Model
 
         #region Methods
 
+        public string GetSetData(int id)
+        {
+            string prevData = "";
+
+            using (SqliteConnection db = new SqliteConnection($"Filename={dbpath}"))
+            {
+                db.Open();
+                SqliteCommand cmd = new SqliteCommand();
+                cmd.Connection = db;
+
+                cmd.CommandText = "PRAGMA foreign_keys = ON";
+                cmd.ExecuteNonQuery();
+
+                cmd.CommandText =
+                    $"SELECT SetData FROM Sets WHERE Id={id}";
+                SqliteDataReader reader = cmd.ExecuteReader();
+                
+                while (reader.Read())
+                {
+                    prevData = reader.GetString(0);
+                }
+            }
+
+            return prevData;
+        }
+
         public void Add(object item)
         {
             if (item.GetType() == typeof(Set))
             {
                 Set s = (Set) item;
+                string thisSetData = $"{s.Reps}x{s.Weight}$";
 
-                string cmdText = "INSERT INTO Sets (WorkoutId, ExerciseId, Reps, Weight) ";
-                cmdText += string.Format("VALUES ('{0}','{1}','{2}','{3}')",
-                    s.WorkoutId, s.ExerciseId, s.Reps, s.Weight);
+                //string cmdText = "INSERT INTO Sets (WorkoutId, ExerciseId, Reps, Weight) ";
+                //cmdText += string.Format("VALUES ('{0}','{1}','{2}','{3}')",
+                //    s.WorkoutId, s.ExerciseId, s.Reps, s.Weight);
+                //ExecuteQuery($"TYPEOF(SELECT SetData FROM Sets WHERE (WorkoutId = {s.WorkoutId} AND ExerciseId = {s.ExerciseId}))");
+                //string prevData = ExecuteQuery($"SELECT SetData FROM Sets WHERE (WorkoutId = {s.WorkoutId} AND ExerciseId = {s.ExerciseId})");
+
+
+
+                //string cmdText = "REPLACE INTO Sets (WorkoutId, ExerciseId, SetData)";
+                //cmdText += string.Format("VALUES ('{0}','{1}','{2}')",
+                //    s.WorkoutId, s.ExerciseId, $"SELECT SetData FROM Sets WHERE (WorkoutId = {s.WorkoutId} AND ExerciseId = {s.ExerciseId})");
+
+                //ExecuteQuery(cmdText);
+                string prevData = "";
+                using (SqliteConnection db = new SqliteConnection($"Filename={dbpath}"))
+                {
+                    db.Open();
+                    SqliteCommand cmd = new SqliteCommand();
+                    cmd.Connection = db;
+
+                    cmd.CommandText = "PRAGMA foreign_keys = ON";
+                    cmd.ExecuteNonQuery();
+
+                    cmd.CommandText =
+                        $"SELECT SetData FROM Sets WHERE (WorkoutId = {s.WorkoutId}) AND (ExerciseId = {s.ExerciseId})";
+                    SqliteDataReader reader = cmd.ExecuteReader();
+                    
+                    while (reader.Read())
+                    {
+                        prevData = reader.GetString(0);
+                    }
+                }
+                //    string cmdText = "REPLACE INTO Sets (WorkoutId, ExerciseId, SetData)";
+                    //    cmdText += string.Format("VALUES ('{0}','{1}','{2}')",
+                    //        s.WorkoutId, s.ExerciseId, prevData + thisSetData);
+
+                    //    ExecuteQuery(cmdText);
+                    //}
+                    string cmdText = "REPLACE INTO Sets (WorkoutId, ExerciseId, SetData)";
+                cmdText += string.Format("VALUES ('{0}','{1}','{2}')",
+                    s.WorkoutId, s.ExerciseId, prevData + thisSetData);
 
                 ExecuteQuery(cmdText);
+
             }
 
             else if (item.GetType() == typeof(Workout))
@@ -226,6 +304,9 @@ namespace ExerciseAppv2.Model
             else if (item.GetType() == typeof(Exercise))
             {
                 Exercise e = (Exercise) item;
+                if (e.Name == null) e.Name = "";
+                if (e.MuscleGroup == null) e.MuscleGroup = "";
+                if (e.Description == null) e.Description = "";
 
                 string cmdText = "INSERT INTO Exercises (Name, MuscleGroup, Description) ";
                 cmdText += string.Format("VALUES ('{0}','{1}','{2}')",
@@ -261,13 +342,17 @@ namespace ExerciseAppv2.Model
         {
             if (item.GetType() == typeof(Set))
             {
-                Set s = (Set)item;
+                //Set s = (Set)item;
 
-                string cmdText = "REPLACE INTO Sets (Id, WorkoutId, ExerciseId, Reps, Weight) ";
-                cmdText += string.Format("VALUES ('{0}','{1}','{2}','{3}','{4}')",
-                    s.Id, s.WorkoutId, s.ExerciseId, s.Reps, s.Weight);
+                //string cmdText = "REPLACE INTO Sets (Id, WorkoutId, ExerciseId, Reps, Weight) ";
+                //cmdText += string.Format("VALUES ('{0}','{1}','{2}','{3}','{4}')",
+                //    s.Id, s.WorkoutId, s.ExerciseId, s.Reps, s.Weight);
 
-                ExecuteQuery(cmdText);
+                ////string cmdText = "REPLACE INTO Sets (Id, WorkoutId, ExerciseId, SetData) ";
+                ////cmdText += string.Format("VALUES ('{0}','{1}','{2}','{3}')",
+                ////    s.Id, s.WorkoutId, s.ExerciseId, "???");
+
+                //ExecuteQuery(cmdText);
             }
 
             else if (item.GetType() == typeof(Workout))

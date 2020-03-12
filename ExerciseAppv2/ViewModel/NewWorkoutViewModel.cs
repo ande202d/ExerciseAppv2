@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Windows.Media.Core;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media;
@@ -27,6 +28,7 @@ namespace ExerciseAppv2.ViewModel
         private Workout _currentWorkout;
         private Exercise _selectedExercise;
         private Set _setToAdd;
+        private NewWorkoutViewSetToAdd _setToAdd2;
         private bool _workoutStarted;
 
         public NewWorkoutViewModel()
@@ -70,6 +72,16 @@ namespace ExerciseAppv2.ViewModel
                 return _setToAdd;
             }
             set { _setToAdd = value; }
+        }
+
+        public NewWorkoutViewSetToAdd SetToAdd2
+        {
+            get
+            {
+                if (_setToAdd2 == null) _setToAdd2 = new NewWorkoutViewSetToAdd();
+                return _setToAdd2;
+            }
+            set { _setToAdd2 = value; }
         }
 
         #region WorkoutStarted (CurrentWorkout)
@@ -122,38 +134,46 @@ namespace ExerciseAppv2.ViewModel
             get
             {
                 int lenght = 5;
-
-                string text = "SELECT * FROM Workouts " +
-                              $"WHERE Id IN (SELECT WorkoutId FROM Sets WHERE ExerciseId={SelectedExercise.Id})";
-
                 List<Workout> listToReturn = new List<Workout>();
 
-                foreach (Workout w in Catalog.Instance.GetWorkoutsFromText(text))
-                {
-                    if (listToReturn.Count < lenght) listToReturn.Add(w);
-                    else
-                    {
-                        Workout replaceHolder = new Workout(DateTime.MaxValue);
-                        for (int i = 0; i < listToReturn.Count; i++)
-                        {
-                            if (listToReturn[i].StartTime < w.StartTime)
-                            {
-                                if (listToReturn[i].StartTime < replaceHolder.StartTime)
-                                {
-                                    replaceHolder = listToReturn[i];
-                                }
-                            }
-                        }
+                //string text = "SELECT * FROM Workouts " +
+                //              $"WHERE Id IN (SELECT WorkoutId FROM Sets WHERE ExerciseId={SelectedExercise.Id})";
 
-                        if (replaceHolder.StartTime != DateTime.MaxValue)
-                        {
-                            listToReturn.Remove(replaceHolder);
-                            listToReturn.Add(w);
-                        }
-                    }
-                }
+                //foreach (Workout w in Catalog.Instance.GetWorkoutsFromText(text))
+                //{
+                //    if (listToReturn.Count < lenght) listToReturn.Add(w);
+                //    else
+                //    {
+                //        Workout replaceHolder = new Workout(DateTime.MaxValue);
+                //        for (int i = 0; i < listToReturn.Count; i++)
+                //        {
+                //            if (listToReturn[i].StartTime < w.StartTime)
+                //            {
+                //                if (listToReturn[i].StartTime < replaceHolder.StartTime)
+                //                {
+                //                    replaceHolder = listToReturn[i];
+                //                }
+                //            }
+                //        }
 
-                listToReturn.Sort((x, y) => DateTime.Compare(y.StartTime, x.StartTime));
+                //        if (replaceHolder.StartTime != DateTime.MaxValue)
+                //        {
+                //            listToReturn.Remove(replaceHolder);
+                //            listToReturn.Add(w);
+                //        }
+                //    }
+                //}
+
+                //listToReturn.Sort((x, y) => DateTime.Compare(y.StartTime, x.StartTime));
+
+                string text = $"SELECT * FROM Workouts " +
+                              $"WHERE Id IN " +
+                                    $"(SELECT WorkoutId FROM Sets " +
+                                    $"WHERE ExerciseId={SelectedExercise.Id}) " +
+                              //$"ORDER BY StartTime DESC " +
+                              $"LIMIT {lenght}";
+
+                listToReturn = Catalog.Instance.GetWorkoutsFromText(text);
 
                 return listToReturn;
             }
@@ -170,6 +190,15 @@ namespace ExerciseAppv2.ViewModel
                 {
                     string text = "SELECT * FROM Sets " +
                                   $"WHERE (WorkoutId={w.Id} AND ExerciseId={SelectedExercise.Id})";
+                    //string dataToConvert = Catalog.Instance.GetSetData(SelectedExercise.Id);
+                    //List<Set> listOfSets = new List<Set>();
+                    //foreach (string s in dataToConvert.Split("$"))
+                    //{
+                    //    listOfSets.Add(new Set());
+                    //}
+
+                    //Catalog.Instance.GetSetsFromText()
+
                     listToReturn.Add(Catalog.Instance.GetSetsFromText(text));
                 }
 
@@ -185,9 +214,11 @@ namespace ExerciseAppv2.ViewModel
         {
             if (WorkoutStarted && SelectedExercise.Id != -1)
             {
-                Set s = SetToAdd;
+                Set s = new Set();
                 s.WorkoutId = CurrentWorkout.Id;
                 s.ExerciseId = SelectedExercise.Id;
+                s.Reps = SetToAdd2.RepsInt;
+                s.Weight = SetToAdd2.WeightDouble;
                 Catalog.Instance.Add(s);
             }
             OnPropertyChanged(nameof(LatestWorkouts));

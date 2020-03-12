@@ -6,6 +6,8 @@
     xmlns:viewModel="using:ExerciseAppv2.ViewModel"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
+    xmlns:core="using:Microsoft.Xaml.Interactions.Core"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -72,7 +74,16 @@
                             <ColumnDefinition Width="2*"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <TextBox Grid.Column="0" Text="{Binding SelectedExercise.Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsSelectedExercisePicked}" TextWrapping="Wrap"></TextBox>
-                        <AppBarButton Grid.Column="1" Content="SAVE CHANGES" Command="{Binding UpdateExerciseCommand}"></AppBarButton>
+                        <StackPanel Grid.Column="1" Orientation="Vertical">
+                            <AppBarButton Content="SAVE CHANGES" Command="{Binding UpdateExerciseCommand}"></AppBarButton>
+                            <AppBarButton Label="GoTo Workout">
+                                <interactivity:Interaction.Behaviors>
+                                    <core:EventTriggerBehavior EventName="Click">
+                                        <core:NavigateToPageAction TargetPage="ExerciseAppv2.View.NewWorkout"/>
+                                    </core:EventTriggerBehavior>
+                                </interactivity:Interaction.Behaviors>
+                            </AppBarButton>
+                        </StackPanel>
                     </Grid>
                 </Grid>
 

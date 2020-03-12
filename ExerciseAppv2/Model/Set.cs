@@ -13,7 +13,9 @@ namespace ExerciseAppv2.Model
         public int WorkoutId { get; set; }
         public int ExerciseId { get; set; }
         public int Reps { get; set; }
-        public int Weight { get; set; }
+
+        public double Weight { get; set; }
+
         public DateTime Time { get; set; }
 
         public Set()
@@ -21,7 +23,7 @@ namespace ExerciseAppv2.Model
             
         }
 
-        public Set(int workoutId, int exerciseId, int reps, int weight)
+        public Set(int workoutId, int exerciseId, int reps, double weight)
         {
             Id = _idCounter;
             _idCounter++;
